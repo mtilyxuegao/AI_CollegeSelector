@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width = device-width, initial-scale = 1.0, user-scalable = no">
+		<title>AI留学择校助手</title>
+		<script>
+			let page_containers;
+			function switchPage() {
+				if (window.location.hash == "#r") {
+					page_containers[0].style.display = "none";
+					page_containers[1].style.display = "";
+				} else {
+					page_containers[0].style.display = "";
+					page_containers[1].style.display = "none";
+				}
+			}
+			function commit() {
+				let college_background = document.getElementById("college-background").value;
+				let gpa = document.getElementById("gpa").value;
+				let language_score = document.getElementById("language-score").value;
+				let gre_score = document.getElementById("gre-score").value;
+				if (college_background && gpa && language_score && gre_score) {
+					document.getElementById("calc-btn").style.display = "none";
+					document.getElementById("loading-circular").style.display = "";
+					let xhr = new XMLHttpRequest();
+					xhr.open("GET", "/calc?" +
+							encodeURIComponent(college_background) + "&" +
+							encodeURIComponent(gpa) + "&" +
+							encodeURIComponent(language_score) + "&" +
+							encodeURIComponent(gre_score));
+					xhr.responseType = "json";
+					xhr.send();
+					xhr.onreadystatechange = function () {
+						if (xhr.readyState === 4) { // 判断成功 信息
+							if (xhr.status === 200) {
+								let array = xhr.response.schools;
+								if (array != undefined) {
+									let schoolsHtml = "";
+									for (let i = 0; i < array.length; i++) {
+										schoolsHtml += "<div class=\"school-card\"><div class=\"school-card__first-line\"><div class=\"school-card__name\">" + array[i].name + "</div><div class=\"school-card__luck\">录取概率：" + array[i].luck + "</div></div><div class=\"school-card__contents\"></div></div>"
+									}
+									document.getElementById("schools").innerHTML = schoolsHtml;
+									window.location.hash = "#r";
+								} else {
+									alert(xhr.response.error);
+								}
+								document.getElementById("loading-circular").style.display = "none";
+								document.getElementById("calc-btn").style.display = "";
+							}
+						}
+					};
+				} else {
+					alert("请补全信息");
+				}
+			}
+			window.onload = function() {
+				page_containers = document.getElementsByClassName("container");
+				switchPage();
+			};
+		</script>
+		<style>
+			body {
+				position: fixed;
+				width: 100%;
+				height: 100%;
+				margin: 0;
+			}
+			#background {
+				position: fixed;
+				width: 100%;
+				height: 100%;
+				background: linear-gradient(to bottom, rgb(200,230,255), rgb(230,230,240) 50%, rgb(250,225,225) 80%, rgb(255,225,220) 85%, rgb(255,235,220));
+			}
+			.container {
+				position: fixed;
+				width: 100%;
+				height: 100%;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				overflow-y: scroll;
+			}
+			.title {
+				color: rgba(0, 0, 0, 0.8);
+			}
+			table {
+				font-size: 1.25rem;
+			}
+			.form-key {
+				color: rgba(0, 0, 0, 0.9);
+			}
+			.form-value {
+				width: 200px;
+				font: unset;
+				border: 1px solid rgba(0, 0, 0, 0.3);
+				border-radius: 3px;
+				outline: none;
+			}
+			.form-value:focus {
+				border: 1px solid rgba(0, 0, 0, 0.6);
+			}
+			select {
+				padding: 2px 2px;
+			}
+			input {
+				box-sizing: border-box;
+				padding: 3px 5px;
+			}
+			/* 谷歌浏览器 */
+			input::-webkit-outer-spin-button,
+			input::-webkit-inner-spin-button {
+				-webkit-appearance: none;
+			}
+			/* 火狐浏览器 */
+			input[type="number"] {
+				-moz-appearance: textfield;
+			}
+			#calc {
+				margin: auto;
+				height: 60px;
+				display: flex;
+			}
+			#calc-btn {
+				margin: auto;
+				font: unset;
+				font-size: 1.25rem;
+				padding: 6px 14px;
+				cursor: pointer;
+				user-select: none;
+				border: none;
+				outline: none;
+				border-radius: 8px;
+				background: linear-gradient(to bottom, rgba(200,230,255,0), rgba(230,230,240,0.1) 80%, rgba(255,240,235,0.6));
+				box-shadow: 0 0 30px 0 rgba(255,255,255,1) inset, 0 0 10px 0 rgba(255,255,255,1) inset;
+			}
+			#calc-btn:hover {
+				background: linear-gradient(to bottom, rgba(225,245,255,0.7), rgba(245,245,245,0.7) 80%, rgba(255,250,245,0.7));
+				box-shadow: 0 0 10px 0 rgba(255,255,255,1) inset, 0 0 10px 0 rgba(255,255,255,0.6);
+			}
+			#calc-btn:active {
+				background: linear-gradient(to bottom, rgba(225,245,255,0.4), rgba(245,245,245,0.4) 80%, rgba(255,250,245,0.4));
+				box-shadow: 0 0 10px 0 rgba(255,255,255,0.6) inset, 0 0 10px 0 rgba(255,255,255,0.4);
+			}
+			#loading-circular {
+				margin: auto;
+				height: 42px;
+				width: 42px;
+				animation: loading-rotate 2s linear infinite;
+			}
+			#loading-path {
+				animation: loading-dash 1.5s ease-in-out infinite;
+				stroke-dasharray: 90, 150;
+				stroke-dashoffset: 0;
+				stroke-width: 4;
+				stroke: rgba(255, 255, 255, 0.9);
+				stroke-linecap: round;
+			}
+			@keyframes loading-rotate {
+				to {transform: rotate(360deg)}
+			}
+			@keyframes loading-dash {
+				0% {stroke-dasharray: 1, 200; stroke-dashoffset: 0}
+				50% {stroke-dasharray: 90, 150; stroke-dashoffset: -40px}
+				to {stroke-dasharray: 90, 150; stroke-dashoffset: -120px}
+			}
+			.school-card {
+				width: 600px;
+				max-width: 90vw;
+				min-width: 40vw;
+				box-sizing: border-box;
+				margin: 16px 0;
+				padding: 8px 14px;
+				border-radius: 8px;
+				background: rgba(255, 255, 255, 0.95);
+				box-shadow: 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+			}
+			.school-card__first-line > div {
+				display: inline;
+			}
+			.school-card__name {
+				margin-right: 12px;
+				font-size: 1.25rem;
+				font-weight: bold;
+			}
+			.school-card__luck {
+				color: rgba(0, 0, 0, 0.8);
+			}
+			.school-card__contents {
+				height: 30px;
+			}
+		</style>
+	</head>
+	<body onhashchange="switchPage()">
+		<div id="background">
+			<div class="container" style="display: none;">
+				<h1 class="title" style="margin: auto;">AI留学择校助手</h1>
+				<table cellspacing="8px">
+					<tbody>
+						<tr>
+							<td class="form-key">自身院校背景</td>
+							<td>
+								<select class="form-value" id="college-background">
+									<option></option>
+									<option>清北复交</option>
+									<option>985</option>
+									<option>211</option>
+									<option>双非</option>
+									<option>中外合办</option>
+									<option>美本</option>
+									<option>海本</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td class="form-key">GPA</td>
+							<td><input class="form-value" id="gpa" type="number" placeholder="4分制" /></td>
+						</tr>
+						<tr>
+							<td class="form-key">语言分数</td>
+							<td><input class="form-value" id="language-score" type="number" placeholder="以托福为准" /></td>
+						</tr>
+						<tr>
+							<td class="form-key">GRE</td>
+							<td><input class="form-value" id="gre-score" type="number" /></td>
+						</tr>
+					</tbody>
+				</table>
+				<div id="calc">
+					<button id="calc-btn" onclick="commit()">智能分析</button>
+					<svg id="loading-circular" style="display: none;" viewBox="0 0 50 50">
+						<circle id="loading-path" cx="25" cy="25" r="20" fill="none"></circle>
+					</svg>
+				</div>
+			</div>
+			<div class="container" style="display: none;">
+				<h1 class="title" style="margin: 30px 0 14px;">分析结果</h1>
+				<div id="schools">
+					<!-- 此处由后端返回数据 -->
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
